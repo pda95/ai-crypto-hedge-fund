@@ -6,3 +6,4 @@ scikit-learn
 statsmodels
 PyPortfolioOpt
 jupyter
+TA-lib
