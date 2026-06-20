@@ -1,40 +1,17 @@
 import ccxt
 import pandas as pd
 
-def load_binance_data(
-        symbol="BTC/USDT",
-        timeframe="1d",
-        limit=1000
+
+def load_binance_data_csv(
+        filename="data/btc_ccxt.csv"
 ):
-    exchange = ccxt.binance()
+    """
+    Загружает данные из CSV-файла.
+    """
+    df = pd.read_csv(filename)
 
-    ohlcv = exchange.fetch_ohlcv(
-        symbol=symbol,
-        timeframe=timeframe,
-        limit=limit
-    )
-
-    df = pd.DataFrame(
-        ohlcv,
-        columns=[
-            "timestamp",
-            "open",
-            "high",
-            "low",
-            "close",
-            "volume"
-        ]
-    )
-
-    df["timestamp"] = pd.to_datetime(
-        df["timestamp"],
-        unit="ms"
-    )
+    # Преобразуем timestamp в datetime, если это необходимо
+    if 'timestamp' in df.columns:
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
 
     return df
-
-if __name__ == "__main__":
-    df = load_binance_data()
-
-    print(df.head())
-    print(df.shape)
