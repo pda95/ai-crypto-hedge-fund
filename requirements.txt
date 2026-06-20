@@ -1,9 +1,0 @@
-ccxt
-pandas
-numpy
-matplotlib
-scikit-learn
-statsmodels
-PyPortfolioOpt
-jupyter
-TA-lib
