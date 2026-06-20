@@ -1,9 +1,8 @@
-import ccxt
 import pandas as pd
 
 
 def load_binance_data_csv(
-        filename="data/btc_ccxt.csv"
+        filename=r'C:/Users/pda95/PycharmProjects/ai-crypto-hedge-fund/data/btc_ccxt.csv'
 ):
     """
     Загружает данные из CSV-файла.
