@@ -82,3 +82,32 @@ def run_agent_strategy(df, fee=0.001):
     df["market_equity"] = (1 + df["next_return"]).cumprod()
     df["strategy_equity"] = (1 + df["strategy_return"]).cumprod()
     return df
+
+
+import numpy as np
+
+def run_ma_rsi_strategy(df, fee=0.001, rsi_low=45, rsi_high=55):
+    """
+    MA50/200 с RSI-фильтром флэта.
+    Идея: в боковике RSI колеблется около 50 -> много ложных сигналов.
+    Берём только сделки, где есть выраженный импульс (RSI вне нейтральной зоны).
+    Требует колонку 'rsi' (из add_rsi) и 'ma50','ma200'.
+    """
+    df = df.copy()
+
+    ma_signal = np.where(df["ma50"] > df["ma200"], 1, 0)
+
+    # Фильтр флэта: торгуем, только если RSI вышел из нейтральной зоны 45..55
+    not_flat = (df["rsi"] < rsi_low) | (df["rsi"] > rsi_high)
+
+    df["signal"] = np.where(not_flat, ma_signal, 0)
+    df["position"] = df["signal"].shift(1)        # сдвиг -> без look-ahead
+
+    df["market_return"] = df["close"].pct_change()
+    df["trades"] = df["position"].diff().abs()
+    df["strategy_return"] = df["position"] * df["market_return"] - df["trades"] * fee
+
+    df = df.dropna()
+    df["market_equity"] = (1 + df["market_return"]).cumprod()
+    df["strategy_equity"] = (1 + df["strategy_return"]).cumprod()
+    return df
