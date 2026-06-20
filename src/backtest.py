@@ -61,12 +61,24 @@ def run_ml_strategy(test, fee=0.001):
     df["trades"] = df["position"].diff().abs()
 
     df["strategy_return"] = (
-        df["position"] * df["next_return"]
-        - df["trades"] * fee
+            df["position"] * df["next_return"]
+            - df["trades"] * fee
     )
 
     df = df.dropna()
     df["market_equity"] = (1 + df["next_return"]).cumprod()
     df["strategy_equity"] = (1 + df["strategy_return"]).cumprod()
 
+    return df
+
+
+def run_agent_strategy(df, fee=0.001):
+    """Бэктест агента: position уже задан агентом."""
+    df = df.copy()
+    df["next_return"] = df["market_return"].shift(-1)
+    df["trades"] = df["position"].diff().abs()
+    df["strategy_return"] = df["position"] * df["next_return"] - df["trades"] * fee
+    df = df.dropna()
+    df["market_equity"] = (1 + df["next_return"]).cumprod()
+    df["strategy_equity"] = (1 + df["strategy_return"]).cumprod()
     return df
