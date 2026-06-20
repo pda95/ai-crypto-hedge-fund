@@ -46,24 +46,27 @@ def run_ma_strategy(df, fee=0.001):
 
 def run_ml_strategy(test, fee=0.001):
     """
-    Превращает предсказания модели (колонка 'pred') в стратегию.
-    1 = в позиции (лонг), 0 = в кэше.
-    Логика комиссий и сдвига та же, что в run_ma_strategy.
+    Превращает предсказания модели в стратегию.
+    pred предсказывает ЗНАК доходности СЛЕДУЮЩЕГО бара (target = shift(-1)).
+    Значит позицию, основанную на pred текущего бара,
+    нужно применять к доходности СЛЕДУЮЩЕГО бара.
     """
     df = test.copy()
 
-    # pred уже относится к следующему бару (target = знак след. доходности),
-    # поэтому позиция = pred, но сделку считаем по факту смены позиции
+    # pred[t] -> прогноз для бара t+1, поэтому сдвигаем доходность назад:
+    # позиция, открытая по сигналу на баре t, зарабатывает на баре t+1
     df["position"] = df["pred"]
+    df["next_return"] = df["market_return"].shift(-1)
+
     df["trades"] = df["position"].diff().abs()
 
     df["strategy_return"] = (
-            df["position"] * df["market_return"]
-            - df["trades"] * fee
+        df["position"] * df["next_return"]
+        - df["trades"] * fee
     )
 
     df = df.dropna()
-    df["market_equity"] = (1 + df["market_return"]).cumprod()
+    df["market_equity"] = (1 + df["next_return"]).cumprod()
     df["strategy_equity"] = (1 + df["strategy_return"]).cumprod()
 
     return df
