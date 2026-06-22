@@ -42,3 +42,15 @@ def load_portfolio_data(filename="portfolio_prices.csv"):
         )
     df = pd.read_csv(path, index_col=0, parse_dates=True)
     return df
+
+
+def load_top_100_pairs(filename="top100_prices.csv"):
+    """Читает таблицу цен 100 пар из CSV (без сети)."""
+    path = DATA_DIR / filename
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Файл не найден: {path}\n"
+            f"Сначала скачайте: uv run python -c "
+            f"'from src.data_loader import download_top_100_pairs; download_top_100_pairs()'"
+        )
+    return pd.read_csv(path, index_col=0, parse_dates=True)
