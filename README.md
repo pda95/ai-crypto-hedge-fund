@@ -1,20 +1,51 @@
-# AI Crypto Hedge Fund
+# 🤖 AI Crypto Hedge Fund
 
-AI-agent based cryptocurrency hedge fund prototype.
+> AI-agent based cryptocurrency hedge fund prototype.  
+---
 
-## Project Structure
+## 📁 Project Structure
 
-- Baseline strategy
-- Econometric models
-- Machine learning models
-- AI agents
-- Portfolio optimization
-- Dynamic rebalancing
+```
+ai-crypto-hedge-fund/
+│
+├── notebooks/
+│   └── hedge_fund.ipynb        # Main notebook (all levels)
+│
+├── src/
+│   ├── data_loader.py
+│   ├── backtest.py
+│   ├── features.py
+│   ├── models.py
+│   ├── portfolio.py
+│   ├── rebalance.py
+│   ├── agents.py
+│   ├── metrics.py
+│   ├── validation.py
+│   ├── scaling.py
+│   └── utils.py
+│
+├── pyproject.toml              # Dependencies (uv)
+└── README.md
+```
 
-## Installation
+## 🚀 Installation
 
-pip install -r requirements.txt
+### uv 
 
-## Run
+```bash
+# Install uv
+pip install uv
 
+# Install dependencies
+uv sync
+```
+
+## ▶️ Run
+
+```bash
+# Jupyter Notebook
 jupyter notebook notebooks/hedge_fund.ipynb
+
+# Or JupyterLab
+jupyter lab notebooks/hedge_fund.ipynb
+```
