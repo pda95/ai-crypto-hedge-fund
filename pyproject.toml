@@ -1,7 +1,7 @@
 [project]
 name = "ai-crypto-hedge-fund"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered cryptocurrency hedge fund with ML signal generation and risk management"
 requires-python = ">=3.9"
 dependencies = [
     "arch>=7.2.0",

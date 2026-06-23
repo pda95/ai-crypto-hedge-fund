@@ -1,3 +1,4 @@
+import pandas as pd
 
 
 def add_moving_averages(df, fast=50, slow=200):
@@ -34,24 +35,6 @@ def add_rsi(df, period=14):
 
     rs = avg_gain / avg_loss
     df["rsi"] = 100 - (100 / (1 + rs))
-
-    return df
-
-
-def add_macd(df, fast=12, slow=26, signal=9):
-    """
-    MACD — импульс тренда: разница быстрой и медленной EMA.
-    macd_hist > 0 -> бычий импульс, < 0 -> медвежий.
-    EMA использует только прошлые значения.
-    """
-    df = df.copy()
-
-    ema_fast = df["close"].ewm(span=fast, adjust=False).mean()
-    ema_slow = df["close"].ewm(span=slow, adjust=False).mean()
-
-    df["macd"] = ema_fast - ema_slow
-    df["macd_signal"] = df["macd"].ewm(span=signal, adjust=False).mean()
-    df["macd_hist"] = df["macd"] - df["macd_signal"]
 
     return df
 
@@ -123,6 +106,49 @@ def add_target(df, horizon=1):
     return df
 
 
+def add_temporal_features(df):
+    """
+    Временные признаки на основе колонки timestamp.
+    """
+    df = df.copy()
+
+    # Убедимся, что timestamp в правильном формате
+    if 'timestamp' in df.columns:
+        # Если timestamp в миллисекундах (Unix)
+        if df['timestamp'].dtype == 'int64':
+            df['timestamp_dt'] = pd.to_datetime(df['timestamp'], unit='ms')
+        else:
+            df['timestamp_dt'] = pd.to_datetime(df['timestamp'])
+
+        # Извлекаем временные признаки
+        df["day_of_week"] = df['timestamp_dt'].dt.dayofweek
+        df["month"] = df['timestamp_dt'].dt.month
+
+        # Удаляем временную колонку
+        df = df.drop('timestamp_dt', axis=1)
+
+    return df
+
+
+def add_price_features(df):
+    """Ценовые признаки."""
+    df = df.copy()
+    # High-Low диапазон
+    df["hl_range"] = (df["high"] - df["low"]) / df["close"]
+    # Price position in range
+    df["price_position"] = (df["close"] - df["low"]) / (df["high"] - df["low"] + 1e-6)
+    return df
+
+
+def add_volume_features(df):
+    """Признаки объема."""
+    df = df.copy()
+    df["volume_change"] = df["volume"].pct_change()
+    # Volume-price correlation
+    df["volume_price_corr"] = df["volume"].rolling(20).corr(df["close"])
+    return df
+
+
 def build_features(df):
     """
     Собирает все признаки + целевую переменную в один вызов.
@@ -133,26 +159,13 @@ def build_features(df):
 
     df = add_moving_averages(df, fast=50, slow=200)
     df = add_rsi(df)
-    df = add_macd(df)
     df = add_bollinger_width(df)
     df = add_volatility(df)
     df = add_return_lags(df)
+    df = add_price_features(df)
+    df = add_volume_features(df)
+    df = add_temporal_features(df)
+
     df = add_target(df, horizon=1)
 
     return df.dropna().reset_index(drop=True)
-
-
-# Список колонок-признаков (то, что подаём в модель).
-# ВАЖНО: тут НЕТ target, market_return, timestamp, цен — только предикторы.
-FEATURE_COLUMNS = [
-    "rsi",
-    "macd",
-    "macd_signal",
-    "macd_hist",
-    "bb_width",
-    "volatility",
-    "return_lag_1",
-    "return_lag_2",
-    "return_lag_3",
-    "return_lag_5",
-]

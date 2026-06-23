@@ -1,4 +1,5 @@
 from sklearn.model_selection import TimeSeriesSplit
+import numpy as np
 
 
 def chronological_split(df, train_ratio=0.7):
@@ -27,8 +28,6 @@ def walk_forward_splits(df, n_splits=5):
     return list(tscv.split(df))
 
 
-import numpy as np
-
 def random_strategy_baseline(test, n_trials=1000, fee=0.001, seed=42):
     """
     Permutation-тест: сравниваем стратегию со случайными сигналами.
@@ -50,6 +49,7 @@ def random_strategy_baseline(test, n_trials=1000, fee=0.001, seed=42):
         rois.append((equity[-1] - 1) * 100)
 
     return np.array(rois)
+
 
 def significance(strategy_roi, random_rois):
     """

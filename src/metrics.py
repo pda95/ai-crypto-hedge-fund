@@ -70,3 +70,41 @@ def summary(equity, returns, periods_per_year=365):
         "Max Drawdown %": round(max_drawdown(equity), 2),
         "Win Rate %": round(win_rate(returns), 2),
     }
+
+def win_rate_by_trades(df):
+    """Calculate win rate per trade, not per day"""
+    trades = df[df['position'].diff() != 0]  # моменты входа
+    # или считать от сделки до сделки
+    trade_returns = []
+    for i in range(len(trades)-1):
+        entry = trades.index[i]
+        exit = trades.index[i+1]
+        trade_return = df.loc[exit, 'strategy_equity'] / df.loc[entry, 'strategy_equity'] - 1
+        trade_returns.append(trade_return)
+    return sum(1 for r in trade_returns if r > 0) / len(trade_returns)
+
+def add_performance_metrics(df):
+    """Additional metrics for better analysis"""
+
+    # Monthly returns
+    df['month'] = df.index.to_period('M')
+    monthly_returns = df.groupby('month')['strategy_return'].apply(
+        lambda x: (1 + x).prod() - 1
+    )
+
+    # Maximum consecutive losses
+    returns_binary = (df['strategy_return'] > 0).astype(int)
+    consecutive_losses = (returns_binary == 0).groupby(
+        (returns_binary != returns_binary.shift()).cumsum()
+    ).sum().max()
+
+    # Profit Factor (Total Profit / Total Loss)
+    total_profit = df[df['strategy_return'] > 0]['strategy_return'].sum()
+    total_loss = abs(df[df['strategy_return'] < 0]['strategy_return'].sum())
+    profit_factor = total_profit / total_loss if total_loss != 0 else np.inf
+
+    return {
+        'Monthly Returns': monthly_returns,
+        'Max Consecutive Losses': consecutive_losses,
+        'Profit Factor': profit_factor
+    }
